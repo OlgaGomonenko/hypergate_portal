@@ -31,16 +31,12 @@ class Settings(BaseSettings):
     # там секрет — это просто переменная окружения, а не загруженный файл).
     # Если задано — имеет приоритет над google_credentials_path.
     google_credentials_json: SecretStr | None = None
+    # Белый список (кто может пользоваться порталом) теперь живёт во вкладке
+    # allowed_usernames самой Google-таблицы, а не здесь — см.
+    # app/repositories/allowed_usernames.py. Так его можно менять прямо в
+    # таблице, без пересборки и перезапуска бэкенда.
 
-    # Белый список: приложением может пользоваться только тот, чей Telegram
-    # username (без @, регистр не важен) есть в этом списке — остальным доступ
-    # закрыт даже с валидной подписью InitData (это не подмена подписи, а
-    # отдельная проверка "имеет ли право", см. app/auth/dependencies.py).
-    # Пусто по умолчанию = НИКОМУ не разрешено — фраза "забыли настроить" не
-    # должна тихо открывать доступ всем подряд.
-    allowed_usernames: Annotated[list[str], NoDecode] = []
-
-    @field_validator("allowed_origins", "allowed_usernames", mode="before")
+    @field_validator("allowed_origins", mode="before")
     @classmethod
     def split_origins(cls, value):
         if isinstance(value, str):

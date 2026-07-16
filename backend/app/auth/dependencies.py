@@ -4,18 +4,19 @@ from fastapi import Header, HTTPException, status
 
 from app.auth.telegram import InitData, InitDataValidationError, TelegramUser, validate_init_data
 from app.config import settings
+from app.repositories import allowed_usernames as allowed_usernames_repo
 
 
-def _check_whitelisted(username: str | None) -> None:
+async def _check_whitelisted(username: str | None) -> None:
     """
     Белый список — это отдельная проверка ПРАВА доступа, а не подлинности:
     подпись InitData уже подтвердила, что это реальный Telegram-пользователь,
-    но пускаем в приложение только тех, чей @username явно разрешён.
-    Пустой username (у части аккаунтов Telegram его вообще нет) никогда не
-    пройдёт — таким пользователям придётся завести username в Telegram.
+    но пускаем в приложение только тех, чей @username явно разрешён (список —
+    вкладка allowed_usernames в Google Sheets, не переменная окружения, чтобы
+    можно было управлять без пересборки бэкенда). Пустой username (у части
+    аккаунтов Telegram его вообще нет) никогда не пройдёт.
     """
-    allowed = {u.lower() for u in settings.allowed_usernames}
-    if not username or username.lower() not in allowed:
+    if not await allowed_usernames_repo.is_allowed(username):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Доступ к порталу закрыт для этого аккаунта Telegram",
@@ -64,5 +65,5 @@ async def get_current_init_data(authorization: str = Header(...)) -> InitData:
     except InitDataValidationError as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc)) from exc
 
-    _check_whitelisted(init_data.user.username)
+    await _check_whitelisted(init_data.user.username)
     return init_data

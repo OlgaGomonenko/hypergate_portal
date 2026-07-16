@@ -60,7 +60,11 @@ def main():
         assert r.status_code == 200 and r.json()["user"]["email"] == "smoke@example.com", r.text
         print("[4] me (после профиля):", r.json())
 
-        r = client.post("/api/onboarding/tax-regime", headers=headers, json={"tax_value_fact": "usn"})
+        r = client.post(
+            "/api/onboarding/tax-regime",
+            headers=headers,
+            json={"tax_value_fact": "usn", "date_active": "2026-05-15"},
+        )
         assert r.status_code == 200, r.text
         print("[5] tax-regime confirm:", r.json())
 

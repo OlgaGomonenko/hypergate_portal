@@ -56,6 +56,10 @@ WORKSHEETS = {
     # режиму, а не по всем историческим записям пользователя разом.
     "tax_events": ["id", "code_td_id", "tg_id", "type", "due_date", "status"],
     "notifications_log": ["tg_id", "event_id", "sent_at", "channel"],
+    # Белый список доступа к порталу — кто угодно с валидной подписью Telegram,
+    # но НЕ в этом списке, получит 403 (см. app/repositories/allowed_usernames.py).
+    # Значения — Telegram username без "@", регистр не важен.
+    "allowed_usernames": ["tg_username"],
 }
 
 # Справочник режимов налогообложения — статичные данные, а не растущий лог,
