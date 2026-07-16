@@ -1025,8 +1025,20 @@ function ProfileScreen({ onNavigateToOnboarding }) {
 
       <Card style={{ background: PURPLE_LIGHT, border: "0.5px solid #AFA9EC" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 44, height: 44, borderRadius: "50%", background: PURPLE, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <i className="ti ti-user" style={{ fontSize: 20, color: "#fff" }} />
+          <div style={{ width: 44, height: 44, borderRadius: "50%", background: PURPLE, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
+            {/* photo_url приходит из initDataUnsafe — это НЕподписанная, чисто
+                клиентская копия initData (в отличие от initData, которую проверяет
+                бэкенд). Годится для аватарки: тут не принимается решений о доступе,
+                просто картинка, и она не хранится — читаем прямо из Telegram SDK. */}
+            {window.Telegram?.WebApp?.initDataUnsafe?.user?.photo_url ? (
+              <img
+                src={window.Telegram.WebApp.initDataUnsafe.user.photo_url}
+                alt=""
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            ) : (
+              <i className="ti ti-user" style={{ fontSize: 20, color: "#fff" }} />
+            )}
           </div>
           <div>
             <div style={{ fontSize: 15, fontWeight: 500, color: "#26215C" }}>@{me?.user?.tg_username || "—"}</div>

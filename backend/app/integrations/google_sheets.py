@@ -1,5 +1,6 @@
 import asyncio
 import json
+import time
 
 import gspread
 from google.oauth2.service_account import Credentials
@@ -9,6 +10,8 @@ from app.config import settings
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
 _client: gspread.Client | None = None
+_spreadsheet: gspread.Spreadsheet | None = None
+_worksheets: dict[str, gspread.Worksheet] = {}
 
 
 def _get_client() -> gspread.Client:
@@ -29,7 +32,19 @@ def _get_client() -> gspread.Client:
 
 
 def _get_worksheet(name: str) -> gspread.Worksheet:
-    return _get_client().open_by_key(settings.google_spreadsheet_id).worksheet(name)
+    # ЭТО и было главной причиной "долго считает": client.open_by_key(...) — не
+    # бесплатная операция, она делает отдельный сетевой запрос за метаданными
+    # ВСЕЙ таблицы (список вкладок и т.п.), а вызывался он заново на КАЖДОЕ
+    # обращение к любой вкладке. Таблица (и структура вкладок) не меняется в
+    # течение жизни процесса — кешируем открытую таблицу и сами вкладки, вместо
+    # того чтобы открывать их заново каждый раз. Замер до фикса: ~3-5 сек на
+    # вызов; основная часть — как раз этот повторный open_by_key.
+    global _spreadsheet
+    if _spreadsheet is None:
+        _spreadsheet = _get_client().open_by_key(settings.google_spreadsheet_id)
+    if name not in _worksheets:
+        _worksheets[name] = _spreadsheet.worksheet(name)
+    return _worksheets[name]
 
 
 def _find_row(ws: gspread.Worksheet, key_column: str, key_value) -> tuple[int, dict] | None:
@@ -43,6 +58,26 @@ def _find_row(ws: gspread.Worksheet, key_column: str, key_value) -> tuple[int, d
 
 def _row_values(row: dict, columns: list[str]) -> list[str]:
     return [str(row.get(col, "")) for col in columns]
+
+
+def make_ttl_cache(ttl_seconds: float = 60):
+    """
+    Простой кеш с истечением по времени для справочников, которые почти не
+    меняются (tax_values, step_tax_value), но читаются на каждом экране
+    онбординга — без кеша это лишний сетевой вызов к Sheets API на каждый
+    такой экран. Не для данных, где нужна строгая свежесть (профиль/прогресс
+    пользователя) — там кеш дал бы задержку в применении изменений.
+    """
+    state = {"value": None, "fetched_at": 0.0}
+
+    async def get_cached(fetch_fn):
+        now = time.time()
+        if state["value"] is None or now - state["fetched_at"] > ttl_seconds:
+            state["value"] = await fetch_fn()
+            state["fetched_at"] = now
+        return state["value"]
+
+    return get_cached
 
 
 # gspread — синхронная библиотека (обычные блокирующие HTTP-запросы). Вызов её
