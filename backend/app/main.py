@@ -34,3 +34,11 @@ app.include_router(onboarding_router)
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.get("/")
+async def root():
+    # Некоторые платформы (напр. Replit Deployments) шлют healthcheck на "/",
+    # а не на "/health" — без этого маршрута они получали бы 404/500 и считали
+    # деплой нездоровым, даже когда сам сервер работает нормально.
+    return {"status": "ok"}
