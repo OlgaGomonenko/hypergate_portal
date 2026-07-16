@@ -10,88 +10,6 @@ const AMBER_LIGHT = "#FAEEDA";
 const RED = "#A32D2D";
 const RED_LIGHT = "#FCEBEB";
 
-const articles = [
-  {
-    id: "tax-regime", category: "start", categoryLabel: "С чего начать",
-    title: "Какой режим выбрать", icon: "ti-scale", short: "УСН, патент или самозанятость",
-    content: [
-      { type: "warning", text: "Самозанятый + один заказчик > 35 тыс/мес дольше 3 месяцев — индикатор риска с 2026 г. Для нашей схемы ИП безопаснее." },
-      { type: "table", headers: ["", "Самозанятый", "ИП УСН 6%", "Патент"], rows: [
-        ["Лимит", "2,4 млн/год", "до 450 млн", "20 млн в 2026"],
-        ["Ставка", "6% от ИП", "6%", "фиксировано"],
-        ["Взносы", "не платит", "57 390 руб.", "57 390 руб."],
-        ["Отчётность", "только чеки", "раз в год", "только КУДиР"],
-      ]},
-      { type: "tip", text: "Совмещайте УСН + патент: УСН как страховка если выпадете из лимита патента, патент — для основной деятельности." }
-    ]
-  },
-  {
-    id: "registration", category: "start", categoryLabel: "С чего начать",
-    title: "Регистрация ИП", icon: "ti-id-badge", short: "Онлайн, бесплатно, 1–3 дня",
-    content: [
-      { type: "text", text: "Регистрация полностью бесплатна и делается онлайн — в налоговую ехать не нужно." },
-      { type: "steps", items: [
-        { label: "Через банк (рекомендуем)", text: "Тинькофф, Точка, Сбер, Альфа — сразу открывают счёт. Срок: 1–3 дня." },
-        { label: "Через nalog.gov.ru", text: "Нужна подтверждённая запись Госуслуг. Госпошлина 0 руб. при подаче онлайн." },
-      ]},
-      { type: "warning", text: "Уведомление о переходе на УСН подавайте ОДНОВРЕМЕННО с регистрацией или в течение 30 дней. Пропустите — попадёте на ОСНО с НДС." }
-    ]
-  },
-  {
-    id: "contributions", category: "taxes", categoryLabel: "Налоги и взносы",
-    title: "Страховые взносы", icon: "ti-coin", short: "57 390 руб. в 2026 году",
-    content: [
-      { type: "warning", text: "Самый частый источник штрафов — забыли про взносы. Платить нужно даже при нулевом доходе." },
-      { type: "steps", items: [
-        { label: "Фиксированный взнос", text: "57 390 руб./год. Срок: до 28 декабря 2026 г." },
-        { label: "Доп. взнос 1%", text: "Если доход > 300 тыс./год — 1% с суммы превышения. Срок: до 1 июля следующего года." },
-      ]},
-      { type: "tip", text: "На УСН взносы уменьшают налог — при типичных доходах команды платёж по УСН выходит почти в 0." }
-    ]
-  },
-  {
-    id: "calendar", category: "taxes", categoryLabel: "Налоги и взносы",
-    title: "Налоговый календарь", icon: "ti-calendar-event", short: "Все дедлайны в одном месте",
-    content: [
-      { type: "events", items: [
-        { date: "25 апреля", label: "Декларация УСН за прошлый год", regime: "УСН" },
-        { date: "28 апреля", label: "Авансовый платёж УСН за 1 квартал", regime: "УСН" },
-        { date: "1 июля", label: "Доплата взносов 1% с дохода > 300 тыс.", regime: "Все ИП" },
-        { date: "28 июля", label: "Авансовый платёж УСН за 2 квартал", regime: "УСН" },
-        { date: "28 октября", label: "Авансовый платёж УСН за 3 квартал", regime: "УСН" },
-        { date: "28 декабря", label: "Фиксированные взносы 57 390 руб.", regime: "Все ИП" },
-      ]},
-      { type: "tip", text: "Все платежи идут на ЕНС (Единый налоговый счёт) — не нужно расщеплять по разным КБК." }
-    ]
-  },
-  {
-    id: "elba", category: "tools", categoryLabel: "Инструменты",
-    title: "Эльба бесплатно", icon: "ti-rocket", short: "5 лайфхаков по сервису",
-    content: [
-      { type: "steps", items: [
-        { label: "Год бесплатно для новых ИП", text: "Тариф «Премиум» на год при регистрации. ИП должно быть моложе 3 месяцев." },
-        { label: "Бесплатно через банк-партнёр", text: "Тинькофф, Точка, Альфа дают Эльбу бесплатно в первый год. Проверьте «Подарки» в ЛК банка." },
-        { label: "Интеграция с банком", text: "Подключите выписку по API — операции загружаются автоматически." },
-        { label: "Автоматические декларации", text: "Эльба формирует декларацию УСН, КУДиР и платёжки по взносам." },
-        { label: "На патенте — минимальный тариф", text: "Отчётности почти нет. Если умеете работать с nalog.gov.ru — оставайтесь на бесплатном." },
-      ]}
-    ]
-  },
-  {
-    id: "risks", category: "taxes", categoryLabel: "Налоги и взносы",
-    title: "Чего точно не делать", icon: "ti-alert-triangle", short: "Типичные ошибки команды",
-    content: [
-      { type: "danger-list", items: [
-        "Пропустить уведомление об УСН в первые 30 дней — иначе ОСНО и НДС с первого дня.",
-        "Превысить лимит патента (20 млн в 2026) — слетите с ПСН задним числом.",
-        "Работать по графику как наёмный сотрудник — признак трудовых отношений для налоговой.",
-        "Игнорировать письма из ФНС в личном кабинете.",
-        "Закрывать ИП «по-тихому» — нужна форма Р26001 и финальная декларация.",
-      ]}
-    ]
-  }
-];
-
 const categories = [
   { id: "all", label: "Все" },
   { id: "start", label: "С чего начать" },
@@ -204,21 +122,40 @@ function ContentBlock({ block }) {
   return null;
 }
 
-function ArticleView({ article, onBack }) {
+function ArticleView({ articleId, onBack }) {
+  const [article, setArticle] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setArticle(null);
+    setError(null);
+    api.getArticle(articleId)
+      .then(data => { if (!cancelled) setArticle(data); })
+      .catch(err => { if (!cancelled) setError(err.message); });
+    return () => { cancelled = true; };
+  }, [articleId]);
+
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
         <button onClick={onBack} style={{ background: "rgba(0,0,0,0.06)", border: "none", borderRadius: 10, width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
           <i className="ti ti-arrow-left" style={{ fontSize: 18 }} />
         </button>
-        <div>
-          <div style={{ fontSize: 16, fontWeight: 500 }}>{article.title}</div>
-          <div style={{ fontSize: 12, color: "rgba(0,0,0,0.4)" }}>{article.categoryLabel}</div>
+        {article && (
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 500 }}>{article.title}</div>
+            <div style={{ fontSize: 12, color: "rgba(0,0,0,0.4)" }}>{article.categoryLabel}</div>
+          </div>
+        )}
+      </div>
+      {error && <div style={{ textAlign: "center", padding: "32px 0", color: RED, fontSize: 14 }}>{error}</div>}
+      {!error && !article && <div style={{ textAlign: "center", padding: "32px 0", color: "rgba(0,0,0,0.35)", fontSize: 14 }}>Загрузка...</div>}
+      {article && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {article.content.map((block, i) => <ContentBlock key={i} block={block} />)}
         </div>
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {article.content.map((block, i) => <ContentBlock key={i} block={block} />)}
-      </div>
+      )}
     </div>
   );
 }
@@ -267,10 +204,20 @@ function HomeScreen({ onNavigate }) {
 
 function KnowledgeScreen() {
   const [activeCategory, setActiveCategory] = useState("all");
-  const [openArticle, setOpenArticle] = useState(null);
+  const [openArticleId, setOpenArticleId] = useState(null);
   const [search, setSearch] = useState("");
+  const [articles, setArticles] = useState([]);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  if (openArticle) return <ArticleView article={openArticle} onBack={() => setOpenArticle(null)} />;
+  useEffect(() => {
+    api.getArticles()
+      .then(data => setArticles(data))
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (openArticleId) return <ArticleView articleId={openArticleId} onBack={() => setOpenArticleId(null)} />;
 
   const filtered = articles.filter(a =>
     (activeCategory === "all" || a.category === activeCategory) &&
@@ -289,22 +236,24 @@ function KnowledgeScreen() {
         ))}
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {filtered.length === 0
-          ? <div style={{ textAlign: "center", padding: "32px 0", color: "rgba(0,0,0,0.35)", fontSize: 14 }}>Ничего не найдено</div>
-          : filtered.map(a => (
-            <Card key={a.id} onClick={() => setOpenArticle(a)} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-              <div style={{ width: 40, height: 40, borderRadius: 12, background: PURPLE_LIGHT, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <i className={`ti ${a.icon}`} style={{ fontSize: 18, color: PURPLE }} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 500 }}>{a.title}</div>
-                <div style={{ fontSize: 12, color: "rgba(0,0,0,0.45)", marginTop: 2 }}>{a.short}</div>
-                <div style={{ marginTop: 6 }}><Badge>{a.categoryLabel}</Badge></div>
-              </div>
-              <i className="ti ti-chevron-right" style={{ fontSize: 16, color: "rgba(0,0,0,0.25)", marginTop: 2 }} />
-            </Card>
-          ))
-        }
+        {loading && <div style={{ textAlign: "center", padding: "32px 0", color: "rgba(0,0,0,0.35)", fontSize: 14 }}>Загрузка...</div>}
+        {!loading && error && <div style={{ textAlign: "center", padding: "32px 0", color: RED, fontSize: 14 }}>{error}</div>}
+        {!loading && !error && filtered.length === 0 && (
+          <div style={{ textAlign: "center", padding: "32px 0", color: "rgba(0,0,0,0.35)", fontSize: 14 }}>Ничего не найдено</div>
+        )}
+        {!loading && !error && filtered.map(a => (
+          <Card key={a.id} onClick={() => setOpenArticleId(a.id)} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: PURPLE_LIGHT, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className={`ti ${a.icon}`} style={{ fontSize: 18, color: PURPLE }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 14, fontWeight: 500 }}>{a.title}</div>
+              <div style={{ fontSize: 12, color: "rgba(0,0,0,0.45)", marginTop: 2 }}>{a.short}</div>
+              <div style={{ marginTop: 6 }}><Badge>{a.categoryLabel}</Badge></div>
+            </div>
+            <i className="ti ti-chevron-right" style={{ fontSize: 16, color: "rgba(0,0,0,0.25)", marginTop: 2 }} />
+          </Card>
+        ))}
       </div>
     </div>
   );
