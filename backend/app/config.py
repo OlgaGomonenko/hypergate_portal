@@ -36,6 +36,14 @@ class Settings(BaseSettings):
     # app/repositories/allowed_usernames.py. Так его можно менять прямо в
     # таблице, без пересборки и перезапуска бэкенда.
 
+    # Брокер для Celery (ежедневная рассылка налоговых напоминаний, см.
+    # app/celery_app.py). Локально Redis не поднят — бизнес-логику тестируем
+    # напрямую (app/services/reminders.py), без живого воркера/брокера;
+    # значение нужно только там, где Celery-воркер реально запускается.
+    # SecretStr — как и google_credentials_json: на проде в URL часто зашит
+    # пароль (redis://user:pass@host:port), не хотим случайно засветить его в логах.
+    redis_url: SecretStr = SecretStr("redis://localhost:6379/0")
+
     @field_validator("allowed_origins", mode="before")
     @classmethod
     def split_origins(cls, value):

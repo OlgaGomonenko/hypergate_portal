@@ -42,6 +42,13 @@ async def get_active_user(tg_id: int) -> dict | None:
     )
 
 
+async def list_active_users() -> list[dict]:
+    """Все пользователи с активной (не закрытой) записью — источник для
+    напоминаний: у каждого берём tax_value_fact, чтобы понять, какие дедлайны
+    из tax_calendar к нему относятся."""
+    return await find_all_rows_by_predicate(WORKSHEET, lambda r: r.get("tax_value_status") == ACTIVE)
+
+
 async def get_user_history(tg_id: int) -> list[dict]:
     """Все записи пользователя (активная + закрытые), по порядку code_td_id."""
     rows = await find_all_rows_by_predicate(WORKSHEET, lambda r: str(r.get("tg_id")) == str(tg_id))
