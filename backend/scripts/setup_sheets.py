@@ -50,11 +50,16 @@ WORKSHEETS = {
         "elba_status",
         "bank_account_status",
     ],
-    # status: upcoming | reminded | done | overdue — тем же полем закрывает и
-    # "статусы оплат" из требований, отдельная вкладка под это не нужна.
-    # code_td_id — чтобы напоминания считались по АКТИВНОМУ на момент события
-    # режиму, а не по всем историческим записям пользователя разом.
-    "tax_events": ["id", "code_td_id", "tg_id", "type", "due_date", "status"],
+    # Инстанс конкретного дедлайна для конкретного пользователя — создаётся
+    # автоматически (см. app/services/reminders.py) из tax_calendar (ниже) для
+    # каждого активного пользователя с подтверждённым режимом. calendar_id —
+    # ссылка на строку-источник в tax_calendar (id этой строки = calendar_id
+    # + "__" + code_td_id, так что повторный запуск синхронизации не плодит
+    # дубли). status: upcoming | done | overdue — сейчас выставляется только
+    # автоматически (upcoming/overdue по дате), "done" пока некому проставлять
+    # (кнопка "Заплатил" в напоминании требует Telegram-вебхука для callback_query
+    # — этого ещё нет, см. README по уведомлениям).
+    "tax_events": ["id", "code_td_id", "tg_id", "calendar_id", "type", "due_date", "status"],
     "notifications_log": ["tg_id", "event_id", "sent_at", "channel"],
     # Белый список доступа к порталу — кто угодно с валидной подписью Telegram,
     # но НЕ в этом списке, получит 403 (см. app/repositories/allowed_usernames.py).
@@ -122,6 +127,35 @@ STEP_TAX_VALUE_SEED = [
 ]
 
 
+# Справочник дедлайнов налогового календаря — CFO-редактируемый, как tax_values
+# (правится прямо в таблице, без редеплоя, см. app/repositories/tax_calendar.py).
+# Заполнен датами из статьи "Налоговый календарь" (content/articles/calendar.md)
+# для режимов usn/usn_patent — это единственные два режима, где по закону есть
+# декларация УСН и обязательные страховые взносы (АУСН — взносы уже внутри
+# налоговой ставки, самозанятость — не ИП, взносов и декларации УСН нет вообще).
+# Даты фиксированы "по номиналу" — без учёта переноса, если день выпадает на
+# выходной; если такое попадётся, поправьте дату прямо в таблице.
+TAX_CALENDAR_HEADERS = ["id", "tax_value_id", "event_type", "due_date", "notification_text"]
+
+_TAX_CALENDAR_EVENTS = [
+    ("usn_declaration", "04-25", "Подайте декларацию по УСН за прошлый год."),
+    ("usn_avans_q1", "04-28", "Оплатите авансовый платёж по УСН за 1 квартал."),
+    ("usn_avans_q2", "07-28", "Оплатите авансовый платёж по УСН за 2 квартал (полугодие)."),
+    ("usn_avans_q3", "10-28", "Оплатите авансовый платёж по УСН за 3 квартал (9 месяцев)."),
+    ("insurance_extra_1pct", "07-01", "Доплатите 1% страховых взносов с дохода свыше 300 тыс. руб. за прошлый год."),
+    ("insurance_fixed", "12-28", "Оплатите фиксированные страховые взносы за текущий год (57 390 руб. — сверьте актуальную сумму)."),
+]
+_TAX_CALENDAR_REGIMES = ["usn", "usn_patent"]
+_TAX_CALENDAR_YEARS = [2026, 2027]
+
+TAX_CALENDAR_SEED = [
+    [f"{regime}__{event_type}__{year}-{month_day}", regime, event_type, f"{year}-{month_day}", text]
+    for regime in _TAX_CALENDAR_REGIMES
+    for event_type, month_day, text in _TAX_CALENDAR_EVENTS
+    for year in _TAX_CALENDAR_YEARS
+]
+
+
 def main() -> None:
     creds = Credentials.from_service_account_file(settings.google_credentials_path, scopes=SCOPES)
     client = gspread.authorize(creds)
@@ -150,6 +184,13 @@ def main() -> None:
         ws = sheet.add_worksheet(title="step_tax_value", rows=10, cols=len(STEP_TAX_VALUE_HEADERS))
         ws.append_rows([STEP_TAX_VALUE_HEADERS, *STEP_TAX_VALUE_SEED])
         print(f"[+] step_tax_value: создана и заполнена ({len(STEP_TAX_VALUE_SEED)} алгоритмов)")
+
+    if "tax_calendar" in existing:
+        print("[=] tax_calendar: вкладка уже есть, пропускаю")
+    else:
+        ws = sheet.add_worksheet(title="tax_calendar", rows=200, cols=len(TAX_CALENDAR_HEADERS))
+        ws.append_rows([TAX_CALENDAR_HEADERS, *TAX_CALENDAR_SEED])
+        print(f"[+] tax_calendar: создана и заполнена ({len(TAX_CALENDAR_SEED)} дедлайнов)")
 
 
 if __name__ == "__main__":
