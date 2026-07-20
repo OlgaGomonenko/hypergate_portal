@@ -70,4 +70,6 @@ export const api = {
       body: JSON.stringify({ date_inactive: dateInactive }),
     }),
   getRegimeHistory: () => apiFetch("/api/onboarding/regime-history"),
+  getArticles: () => apiFetch("/api/knowledge/articles"),
+  getArticle: (articleId) => apiFetch(`/api/knowledge/articles/${articleId}`),
 };
