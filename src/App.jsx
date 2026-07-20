@@ -119,6 +119,12 @@ function ContentBlock({ block }) {
       </table>
     </div>
   );
+  if (block.type === "image") return (
+    <figure style={{ margin: 0 }}>
+      <img src={api.imageUrl(block.src)} alt={block.alt} style={{ width: "100%", borderRadius: 12, display: "block" }} />
+      {block.alt && <figcaption style={{ fontSize: 12, color: "rgba(0,0,0,0.45)", marginTop: 6, textAlign: "center" }}>{block.alt}</figcaption>}
+    </figure>
+  );
   return null;
 }
 

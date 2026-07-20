@@ -13,17 +13,23 @@ import re
 from pathlib import Path
 
 ARTICLES_DIR = Path(__file__).resolve().parent.parent.parent / "content" / "articles"
+IMAGES_DIR = ARTICLES_DIR / "images"
 
 # Разрешаем только простые идентификаторы: это имя файла на диске, и без
 # такой проверки article_id из URL мог бы содержать "../" и читать
 # произвольный файл за пределами content/articles (path traversal).
 _ID_RE = re.compile(r"^[a-z0-9_-]+$")
 
+# Тот же принцип для скринов: только простое имя файла с разрешённым
+# расширением — не полный путь, не "..", не произвольный тип файла.
+_IMAGE_FILENAME_RE = re.compile(r"^[a-zA-Z0-9_-]+\.(png|jpg|jpeg|webp|gif)$")
+
 _FENCE_START_RE = re.compile(r"^::(\w+)\s*$")
 _TABLE_ROW_RE = re.compile(r"^\|(.+)\|\s*$")
 _TABLE_SEP_RE = re.compile(r"^\|(\s*:?-+:?\s*\|)+\s*$")
 _ORDERED_ITEM_RE = re.compile(r"^\d+\.\s+(.*)$")
 _STEP_LABEL_RE = re.compile(r"^\*\*(.+?)\*\*\s*[—\-:]\s*(.*)$")
+_IMAGE_LINE_RE = re.compile(r"^!\[(.*?)\]\((\S+)\)\s*$")
 
 
 def _parse_frontmatter(text: str) -> tuple[dict, str]:
@@ -126,6 +132,12 @@ def _parse_blocks(body: str) -> list[dict]:
             blocks.append(_build_steps_block(item_lines))
             continue
 
+        image = _IMAGE_LINE_RE.match(line.strip())
+        if image:
+            i += 1
+            blocks.append({"type": "image", "alt": image.group(1).strip(), "src": image.group(2).strip()})
+            continue
+
         para_lines = []
         while (
             i < n
@@ -133,6 +145,7 @@ def _parse_blocks(body: str) -> list[dict]:
             and not _FENCE_START_RE.match(lines[i])
             and not _TABLE_ROW_RE.match(lines[i])
             and not _ORDERED_ITEM_RE.match(lines[i])
+            and not _IMAGE_LINE_RE.match(lines[i].strip())
         ):
             para_lines.append(lines[i])
             i += 1
@@ -185,3 +198,14 @@ def get_article(article_id: str) -> dict | None:
         return _load_article_file(path)
     except ValueError:
         return None
+
+
+def get_image_path(filename: str) -> Path | None:
+    """Только простое имя файла с разрешённым расширением — см. _IMAGE_FILENAME_RE,
+    защита от path traversal и от отдачи произвольных файлов с диска."""
+    if not _IMAGE_FILENAME_RE.match(filename):
+        return None
+    path = IMAGES_DIR / filename
+    if not path.is_file():
+        return None
+    return path

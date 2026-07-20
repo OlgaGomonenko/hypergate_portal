@@ -72,4 +72,5 @@ export const api = {
   getRegimeHistory: () => apiFetch("/api/onboarding/regime-history"),
   getArticles: () => apiFetch("/api/knowledge/articles"),
   getArticle: (articleId) => apiFetch(`/api/knowledge/articles/${articleId}`),
+  imageUrl: (filename) => `${API_BASE_URL}/api/knowledge/images/${filename}`,
 };
